@@ -1,6 +1,7 @@
 package com.example.task_service.controller.advice;
 
 import com.example.task_service.dto.ErrorResponse;
+import com.example.task_service.exception.TaskNotFoundException;
 import com.example.task_service.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException e) {
         ErrorResponse error = ErrorResponse.of("User Not Found", e.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTaskNotFound(TaskNotFoundException e) {
+        ErrorResponse error = ErrorResponse.of("Task Not Found", e.getMessage());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 

@@ -1,8 +1,10 @@
 package com.example.task_service.service;
 
+import com.example.task_service.exception.UserNotFoundException;
 import com.example.task_service.model.User;
 import com.example.task_service.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -14,7 +16,7 @@ public class UserServiceImpl implements UserService {
         this.repository = repository;
     }
 
-    // TODO Обработать ошибки создания
+    @Transactional
     @Override
     public UUID createUser(String name, String email) {
         User user = new User();
@@ -23,9 +25,8 @@ public class UserServiceImpl implements UserService {
         return repository.save(user).getId();
     }
 
-    // TODO Заменить runtime на более информативное
     @Override
     public User getUserById(UUID id) {
-        return repository.findById(id).orElseThrow(RuntimeException::new);
+        return repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 }

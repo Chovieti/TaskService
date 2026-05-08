@@ -18,16 +18,16 @@ public class UserController {
     public UserController(UserService service) {
         this.service = service;
     }
-    // TODO Сделать обработку ошибок создания
+
     @PostMapping
     public ResponseEntity<UUID> createUser(@Valid @RequestBody CreateUserRequest request) {
         UUID idCreatedUser = service.createUser(request.name(), request.email());
         return ResponseEntity.ok(idCreatedUser);
     }
 
-    // TODO Обработку ошибок
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable("userId") UUID id) {
+        if (id == null) throw new IllegalArgumentException();
         User user = service.getUserById(id);
         return ResponseEntity.ok(new UserResponse(user.getName(), user.getEmail()));
     }

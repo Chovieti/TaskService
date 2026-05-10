@@ -1,11 +1,13 @@
 package com.example.task_service.service;
 
+import com.example.task_service.event.TaskEvent;
 import com.example.task_service.exception.TaskNotFoundException;
 import com.example.task_service.exception.UserNotFoundException;
 import com.example.task_service.model.Task;
 import com.example.task_service.model.TaskStatus;
 import com.example.task_service.repository.TaskRepository;
 import com.example.task_service.repository.UserRepository;
+import com.example.task_service.service.kafka.TaskEventProducer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +21,14 @@ import java.util.UUID;
 public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final TaskEventProducer eventProducer;
 
-    public TaskServiceImpl(TaskRepository taskRepository, UserRepository userRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository,
+                           UserRepository userRepository,
+                           TaskEventProducer eventProducer) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
+        this.eventProducer = eventProducer;
     }
 
     @Transactional
@@ -32,7 +38,18 @@ public class TaskServiceImpl implements TaskService {
         task.setTitle(title);
         task.setDescription(description);
         task.setStatus(TaskStatus.CREATED);
-        return taskRepository.save(task).getId();
+        Task saved = taskRepository.save(task);
+        eventProducer.send(
+                new TaskEvent(
+                        "TASK_CREATED",
+                        saved.getId(),
+                        saved.getTitle(),
+                        saved.getDescription(),
+                        saved.getStatus(),
+                        null
+                )
+        );
+        return saved.getId();
     }
 
     @Override
@@ -52,7 +69,18 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
         if (!userRepository.existsById(userId)) throw new UserNotFoundException(userId);
         task.setAssigneeId(userId);
-        return task;
+        Task saved = taskRepository.save(task);
+        eventProducer.send(
+                new TaskEvent(
+                        "TASK_ASSIGNED",
+                        saved.getId(),
+                        saved.getTitle(),
+                        saved.getDescription(),
+                        saved.getStatus(),
+                        userId
+                )
+        );
+        return saved;
     }
 
     @Transactional

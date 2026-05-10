@@ -12,7 +12,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Table(name = "tasks")
+@Table(
+        name = "tasks",
+        indexes = {@Index(name = "idx_tasks_title", columnList = "title")}
+)
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

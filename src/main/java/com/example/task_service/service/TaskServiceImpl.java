@@ -42,7 +42,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<Task> getTasks(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("status"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return taskRepository.findAll(pageable);
     }
 

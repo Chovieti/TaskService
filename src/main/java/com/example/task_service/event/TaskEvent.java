@@ -1,7 +1,5 @@
 package com.example.task_service.event;
 
-import com.example.task_service.model.TaskStatus;
-
 import java.util.UUID;
 
 public record TaskEvent(
@@ -9,6 +7,6 @@ public record TaskEvent(
         UUID taskId,
         String title,
         String description,
-        TaskStatus status,
+        String status,
         UUID assigneeId
 ) {}

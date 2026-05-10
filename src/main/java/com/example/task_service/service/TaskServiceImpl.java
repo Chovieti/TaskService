@@ -1,6 +1,5 @@
 package com.example.task_service.service;
 
-import com.example.task_service.event.TaskEvent;
 import com.example.task_service.exception.TaskNotFoundException;
 import com.example.task_service.exception.UserNotFoundException;
 import com.example.task_service.model.Task;
@@ -39,16 +38,7 @@ public class TaskServiceImpl implements TaskService {
         task.setDescription(description);
         task.setStatus(TaskStatus.CREATED);
         Task saved = taskRepository.save(task);
-        eventProducer.send(
-                new TaskEvent(
-                        "TASK_CREATED",
-                        saved.getId(),
-                        saved.getTitle(),
-                        saved.getDescription(),
-                        saved.getStatus(),
-                        null
-                )
-        );
+        eventProducer.sendTaskCreated(task);
         return saved.getId();
     }
 
@@ -59,7 +49,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<Task> getTasks(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("title"));
         return taskRepository.findAll(pageable);
     }
 
@@ -70,16 +60,7 @@ public class TaskServiceImpl implements TaskService {
         if (!userRepository.existsById(userId)) throw new UserNotFoundException(userId);
         task.setAssigneeId(userId);
         Task saved = taskRepository.save(task);
-        eventProducer.send(
-                new TaskEvent(
-                        "TASK_ASSIGNED",
-                        saved.getId(),
-                        saved.getTitle(),
-                        saved.getDescription(),
-                        saved.getStatus(),
-                        userId
-                )
-        );
+        eventProducer.sendTaskAssigned(task);
         return saved;
     }
 
@@ -88,6 +69,8 @@ public class TaskServiceImpl implements TaskService {
     public Task changeStatus(UUID id, TaskStatus status) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
         task.setStatus(status);
-        return task;
+        Task saved = taskRepository.save(task);
+        eventProducer.sendTaskStatusChanged(task);
+        return saved;
     }
 }

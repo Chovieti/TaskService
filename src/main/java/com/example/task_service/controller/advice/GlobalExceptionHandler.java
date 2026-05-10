@@ -74,8 +74,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllOtherExceptions(Exception e) {
         ErrorResponse error = ErrorResponse.of(
-                "Internal Server Server",
-                "An unexpected error occured. Please try again later." + e.getMessage()
+                "Internal Server Error",
+                "An unexpected error occurred. Please try again later." + e.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }

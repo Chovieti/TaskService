@@ -1,4 +1,4 @@
-package com.example.task_service.dto;
+package com.example.task_service.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 

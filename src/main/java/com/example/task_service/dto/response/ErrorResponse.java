@@ -1,4 +1,4 @@
-package com.example.task_service.dto;
+package com.example.task_service.dto.response;
 
 import java.time.LocalDateTime;
 

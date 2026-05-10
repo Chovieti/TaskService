@@ -1,6 +1,6 @@
 package com.example.task_service.controller.advice;
 
-import com.example.task_service.dto.ErrorResponse;
+import com.example.task_service.dto.response.ErrorResponse;
 import com.example.task_service.exception.TaskNotFoundException;
 import com.example.task_service.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;

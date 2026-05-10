@@ -1,19 +1,26 @@
 package com.example.task_service.controller;
 
-import com.example.task_service.dto.CreateTaskRequest;
-import com.example.task_service.dto.TaskResponse;
+import com.example.task_service.dto.request.AssignTaskRequest;
+import com.example.task_service.dto.request.ChangeTaskStatusRequest;
+import com.example.task_service.dto.request.CreateTaskRequest;
+import com.example.task_service.dto.response.TaskResponse;
+import com.example.task_service.mapper.TaskMapper;
 import com.example.task_service.model.Task;
-import com.example.task_service.model.TaskStatus;
 import com.example.task_service.service.TaskService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/tasks")
+@Validated
 public class TaskController {
     private final TaskService service;
 
@@ -24,34 +31,36 @@ public class TaskController {
     @PostMapping
     public ResponseEntity<UUID> createTask(@Valid @RequestBody CreateTaskRequest request) {
         UUID idCreatedTask = service.createTask(request.title(), request.description());
-        return ResponseEntity.ok(idCreatedTask);
+        return ResponseEntity.status(HttpStatus.CREATED).body(idCreatedTask);
     }
-    // TODO Запрос для получения задачи по id
+
     @GetMapping("/{id}")
-    public ResponseEntity<Void> getTaskById() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<TaskResponse> getTaskById(@PathVariable("id") UUID id) {
+        Task task = service.getTaskById(id);
+        return ResponseEntity.ok(TaskMapper.toResponse(task));
     }
-    // TODO Запрос для получения задач с пагинацией, разобраться подробнее и доделать(нужно будет ещё мапить)
+
     @GetMapping
-    public Page<Task> getTasksPage() {
-        return service.getTasks(0, 10);
+    public ResponseEntity<Page<TaskResponse>> getTasksPage(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
+    ) {
+        Page<TaskResponse> tasks = service.getTasks(page, size).map(TaskMapper::toResponse);
+        return ResponseEntity.ok(tasks);
     }
-    // TODO Запрос на назначение исполнителя задаче
-    @PatchMapping("/{id}/assign/{userId}")
-    public ResponseEntity<Void> assignTask() {
-        return ResponseEntity.ok().build();
+
+    @PatchMapping("/{taskId}/assign")
+    public ResponseEntity<TaskResponse> assignTask(@PathVariable("taskId") UUID taskId,
+                                                   @Valid @RequestBody AssignTaskRequest request)
+    {
+        Task task = service.assignTask(taskId, request.userId());
+        return ResponseEntity.ok(TaskMapper.toResponse(task));
     }
-    // TODO Запрос смена статуса задаче
-    // TODO Проверить работу!!!
-    @PatchMapping("/{id}/{status}")
-    public ResponseEntity<TaskResponse> changeTaskStatus(@PathVariable("id") UUID id, @PathVariable("status")TaskStatus status) {
-        Task task = service.changeStatus(id, status);
-        return ResponseEntity.ok(new TaskResponse(
-                task.getId(),
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus(),
-                task.getAssigneeId())
-        );
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<TaskResponse> changeTaskStatus(@PathVariable("id") UUID id,
+                                                         @Valid @RequestBody ChangeTaskStatusRequest request) {
+        Task task = service.changeStatus(id, request.status());
+        return ResponseEntity.ok(TaskMapper.toResponse(task));
     }
 }

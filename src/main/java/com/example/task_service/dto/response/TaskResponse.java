@@ -1,4 +1,4 @@
-package com.example.task_service.dto;
+package com.example.task_service.dto.response;
 
 import com.example.task_service.model.TaskStatus;
 

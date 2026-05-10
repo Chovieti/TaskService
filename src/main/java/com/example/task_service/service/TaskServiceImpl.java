@@ -1,6 +1,7 @@
 package com.example.task_service.service;
 
 import com.example.task_service.exception.TaskNotFoundException;
+import com.example.task_service.exception.UserNotFoundException;
 import com.example.task_service.model.Task;
 import com.example.task_service.model.TaskStatus;
 import com.example.task_service.repository.TaskRepository;
@@ -8,6 +9,7 @@ import com.example.task_service.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,10 +40,9 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
     }
 
-    // TODO Разобраться с pageable
     @Override
     public Page<Task> getTasks(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("status"));
         return taskRepository.findAll(pageable);
     }
 
@@ -49,9 +50,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Task assignTask(UUID taskId, UUID userId) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
-        userRepository.findById(userId).orElseThrow(() -> new TaskNotFoundException(userId));
+        if (!userRepository.existsById(userId)) throw new UserNotFoundException(userId);
         task.setAssigneeId(userId);
-        return taskRepository.save(task);
+        return task;
     }
 
     @Transactional
@@ -59,6 +60,6 @@ public class TaskServiceImpl implements TaskService {
     public Task changeStatus(UUID id, TaskStatus status) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
         task.setStatus(status);
-        return taskRepository.save(task);
+        return task;
     }
 }

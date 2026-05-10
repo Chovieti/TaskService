@@ -1,7 +1,7 @@
 package com.example.task_service.dto.request;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record CreateUserRequest(
-        @NotNull String name, @NotNull String email
+        @NotBlank String name, @NotBlank String email
 ) {}

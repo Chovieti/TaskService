@@ -1,5 +1,5 @@
 package com.example.task_service.dto.request;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
-public record CreateTaskRequest(@NotNull String title, @NotNull String description) {}
+public record CreateTaskRequest(@NotBlank String title, @NotBlank String description) {}

@@ -3,8 +3,10 @@ package com.example.task_service.controller.advice;
 import com.example.task_service.dto.response.ErrorResponse;
 import com.example.task_service.exception.TaskNotFoundException;
 import com.example.task_service.exception.UserNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -52,11 +54,27 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        ErrorResponse error = ErrorResponse.of("Invalid Request", "Invalid request body or enum value");
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException e) {
+        String errorMessage = e.getConstraintViolations().stream()
+                .map(violation -> violation.getMessage())
+                .collect(Collectors.joining(";"));
+        ErrorResponse error = ErrorResponse.of("Validation Failed", errorMessage);
+        return ResponseEntity.badRequest().body(error);
+
+    }
+
     // Все остальные исключения
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllOtherExceptions(Exception e) {
         ErrorResponse error = ErrorResponse.of(
-                "Internal Error Server",
+                "Internal Server Server",
                 "An unexpected error occured. Please try again later." + e.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
